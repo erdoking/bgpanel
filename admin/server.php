@@ -106,6 +106,13 @@ while ($rowsServers = mysql_fetch_assoc($servers))
 	$game = query_fetch_assoc( "SELECT `game` FROM `".DBPREFIX."game` WHERE `gameid` = '".$rowsServers['gameid']."' LIMIT 1" );
 	$group = query_fetch_assoc( "SELECT `name` FROM `".DBPREFIX."group` WHERE `groupid` = '".$rowsServers['groupid']."' LIMIT 1" );
 
+	$lgsldetails = query_fetch_assoc( "SELECT `ip` FROM `".DBPREFIX."lgsl` WHERE `id` = '".$rowsServers['serverid']."' LIMIT 1" );
+	if(!empty($lgsldetails) && !empty($serverIp['ip']) && $lgsldetails['ip'] !== $serverIp['ip'])
+	{
+		query_basic("UPDATE `".DBPREFIX."lgsl` SET `ip` = '".$serverIp['ip']."' WHERE `id` = '".$rowsServers['serverid']."'");
+	}
+
+
 	if ($rowsServers['status'] == 'Active' && $rowsServers['panelstatus'] == 'Started')
 	{
 		//---------------------------------------------------------+
