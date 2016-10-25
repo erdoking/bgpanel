@@ -137,7 +137,6 @@
     else
     {
       list($type, $ip, $c_port, $q_port, $s_port) = array(mysql_real_escape_string($type), mysql_real_escape_string($ip), intval($c_port), intval($q_port), intval($s_port));
-
       if (!$type || !$ip || !$c_port || !$q_port) { exit("LGSL PROBLEM: INVALID SERVER '{$type} : {$ip} : {$c_port} : {$q_port} : {$s_port}'"); }
       $mysql_query  = "SELECT * FROM `{$lgsl_config['db']['prefix']}{$lgsl_config['db']['table']}` WHERE `type`='{$type}' AND `ip`='{$ip}' AND `q_port`='{$q_port}' LIMIT 1";
       $mysql_result = mysql_query($mysql_query) or die(mysql_error());

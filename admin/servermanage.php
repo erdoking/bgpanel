@@ -174,9 +174,7 @@ else if ($rows['status'] == 'Active')
 	//---------------------------------------------------------+
 	//Querying the server
 	include_once("../libs/lgsl/lgsl_class.php");
-
-	$server = lgsl_query_live($type['querytype'], $ip['ip'], NULL, $rows['queryport'], NULL, 's');
-
+	$server = lgsl_query_live($type['querytype'], $ip['ip'], $rows['port'], $rows['queryport'], NULL, 's');
 ?>
 			<div class="well">
 				<h3>Server Commander</h3>
