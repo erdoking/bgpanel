@@ -194,7 +194,7 @@ if (!empty($servers))
 
 		//---------------------------------------------------------+
 		//Querying the server
-		$server = lgsl_query_live($type['querytype'], $ip['ip'], NULL, $value['queryport'], NULL, 's');
+		$server = lgsl_query_live($type['querytype'], $ip['ip'], $value['port'], $value['queryport'], NULL, 's');
 		//---------------------------------------------------------+
 ?>
 						<tr>

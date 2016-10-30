@@ -233,7 +233,7 @@ if (($rows['status'] == 'Active') && ($rows['panelstatus'] == 'Started'))
 {
 	//---------------------------------------------------------+
 	//Querying the server
-	$server = lgsl_query_live($type['querytype'], $serverIp['ip'], NULL, $rows['queryport'], NULL, 's');
+	$server = lgsl_query_live($type['querytype'], $serverIp['ip'], $rows['port'], $rows['queryport'], NULL, 's');
 	//
 	//---------------------------------------------------------+
 }

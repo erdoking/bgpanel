@@ -119,7 +119,7 @@ while ($rowsServers = mysql_fetch_assoc($servers))
 		//Querying the server
 		include_once("../libs/lgsl/lgsl_class.php");
 
-		$server = lgsl_query_live($type['querytype'], $serverIp['ip'], NULL, $rowsServers['queryport'], NULL, 's');
+		$server = lgsl_query_live($type['querytype'], $serverIp['ip'], $rowsServers['port'], $rowsServers['queryport'], NULL, 's');
 
 ?>
 						<tr>
