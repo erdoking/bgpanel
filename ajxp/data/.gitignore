@@ -1,0 +1,29 @@
+## logs/
+logs/*.log
+logs/*.txt
+
+## tmp/
+tmp/*
+
+## plugins/
+## Ignore everything
+plugins/*
+
+# But not these files...
+!plugins/conf.serial/.htaccess
+!plugins/conf.serial/plugins_configs.ser
+!plugins/.htaccess
+!plugins/auth.serial/.htaccess
+!plugins/.gitignore
+
+## cache/
+## Ignore everything
+cache/*
+
+# But not these files...
+!cache/.htaccess
+!cache/admin_counted
+!cache/diag_result.php
+!cache/first_run_passed
+!cache/i18n/en_plugins_messages.ser
+!cache/index.html
