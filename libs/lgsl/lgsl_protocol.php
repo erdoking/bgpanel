@@ -278,7 +278,7 @@ if (!function_exists('lgsl_version')) { // START OF DOUBLE LOAD PROTECTION
                 "starwarsbf2"           => "09",
                 "starwarsrc"            => "09",
                 "swat4"                 => "03",
-                "ts3"                   => "97",
+                "ts3"                   => "96",
                 "test"                  => "01",
                 "teeworlds"             => "21",
                 "tribes"                => "23",
@@ -3724,7 +3724,7 @@ if (!function_exists('lgsl_version')) { // START OF DOUBLE LOAD PROTECTION
         //---------------------------------------------------------+
         //  REFERENCE: http://blogs.battlefield.ea.com/battlefield_bad_company/archive/2010/02/05/remote-administration-interface-for-bfbc2-pc.aspx
         //  THIS USES TCP COMMUNICATION
-        //      Modified for BF3
+        //  Modified for BF3
 
                 if ($lgsl_need['s'] || $lgsl_need['e'])
                 {
@@ -4217,7 +4217,7 @@ if (!function_exists('lgsl_version')) { // START OF DOUBLE LOAD PROTECTION
 
 //------------------------------------------------------------------------------------------------------------+
 
-  function lgsl_query_97(&$server, &$lgsl_need, &$lgsl_fp) 
+  function lgsl_query_96(&$server, &$lgsl_need, &$lgsl_fp) 
   { 
     require_once("ts3.class.php"); 
 
@@ -4255,6 +4255,229 @@ if (!function_exists('lgsl_version')) { // START OF DOUBLE LOAD PROTECTION
     } 
     return TRUE; 
   }
+
+  function lgsl_query_98(&$server, &$lgsl_need, &$lgsl_fp)
+  {
+    return TRUE;
+  }
+
+//------------------------------------------------------------------------------------------------------------+
+//------------------------------------------------------------------------------------------------------------+
+
+    function lgsl_query_97(&$server, &$lgsl_need, &$lgsl_fp)
+  {
+//---------------------------------------------------------+
+//  SERVER RULES ARE ON THE END OF THE INFO RESPONSE
+//  ALTERNATIVE A2S SERVER QUERY BY Warhawk3407 FOR RECENT GAMES
+//  BASED ON AVP 2010
+
+    fwrite($lgsl_fp, "\xFF\xFF\xFF\xFF\x54Source Engine Query\x00");
+
+    $buffer = fread($lgsl_fp, 4096);
+
+    if (!$buffer) { return FALSE; }
+
+    $buffer = substr($buffer, 5); // REMOVE HEADER
+
+    $server['e']['netcode']     = ord(lgsl_cut_byte($buffer, 1));
+    $server['s']['name']        = lgsl_cut_string($buffer);
+    $server['s']['map']         = lgsl_cut_string($buffer);
+    $server['s']['game']        = lgsl_cut_string($buffer);
+    $server['e']['description'] = lgsl_cut_string($buffer);
+    $server['e']['appid']       = lgsl_unpack(lgsl_cut_byte($buffer, 2), "S");
+    $server['s']['players']     = ord(lgsl_cut_byte($buffer, 1));
+    $server['s']['playersmax']  = ord(lgsl_cut_byte($buffer, 1));
+    $server['e']['bots']        = ord(lgsl_cut_byte($buffer, 1));
+    $server['e']['dedicated']   = lgsl_cut_byte($buffer, 1);
+    $server['e']['os']          = lgsl_cut_byte($buffer, 1);
+    $server['s']['password']    = ord(lgsl_cut_byte($buffer, 1));
+    $server['e']['anticheat']   = ord(lgsl_cut_byte($buffer, 1));
+    $server['e']['version']     = lgsl_cut_string($buffer);
+
+    $buffer = substr($buffer, 1);
+    $server['e']['hostport']     = lgsl_unpack(lgsl_cut_byte($buffer, 2), "S");
+    @$server['e']['friendlyfire'] = @$buffer[124];
+
+//---------------------------------------------------------+
+//GET CHALLENGE
+
+    fwrite($lgsl_fp, "\xFF\xFF\xFF\xFF\x55\x00\x00\x00\x00");
+
+    $challenge = fread($lgsl_fp, 4096);
+
+        if (!$challenge) { return FALSE; }
+
+        $challenge = substr($challenge, 5); // REMOVE HEADER
+
+//---------------------------------------------------------+
+//PLAYERS
+
+        fwrite($lgsl_fp, "\xFF\xFF\xFF\xFF\x55{$challenge}");
+
+        $buffer = fread($lgsl_fp, 4096);
+
+    if (!$buffer) { return FALSE; }
+
+    $buffer = substr($buffer, 5); // REMOVE HEADER
+        $buffer = bin2hex($buffer); // CONVERT TO HEX
+
+        $numPlayers = hexdec(substr($buffer, 0, 2));
+
+        $buffer = substr($buffer, 4); // REMOVE NUMPLAYERS FROM BUFFER
+
+        $player_key = 0;
+        while ($player_key < $numPlayers)
+        {
+        //---------------------------------------------------------+
+        //NAMES
+                $nameHex = substr($buffer, 0, strpos($buffer, "00"));
+                $nameBin = @pack("H*", $nameHex); // BINARY PLAYER NAME
+
+                unset($nameHex);
+
+                $buffer = substr($buffer, (strpos($buffer, "00") + 2)); // REMOVE PLAYER NAME FROM BUFFER
+
+        //---------------------------------------------------------+
+        //SCORES
+                $scoreBin = @pack("H*", substr($buffer, 0, 8)); // RETRIEVES SCORE & CONVERT IT FROM HEX TO BIN
+                $scoreTable = @unpack('l', $scoreBin);
+                $score = $scoreTable[1];
+
+                unset($scoreBin, $scoreTable);
+
+                $buffer = substr($buffer, 8); // REMOVE PLAYER SCORE FROM BUFFER
+
+        //---------------------------------------------------------+
+        //TIME
+                $timeBin = @pack("H*", substr($buffer, 0, 10)); // RETRIEVES TIME & CONVERT IT FROM HEX TO BIN
+                $timeTable =  @unpack('f', $timeBin);
+                $time = $timeTable[1];
+
+                unset($timeBin, $timeTable);
+
+                $buffer = substr($buffer, 10); // REMOVE PLAYER TIME FROM BUFFER
+
+        //---------------------------------------------------------+
+
+                $server['p'][$player_key]['pid']   = $player_key;
+                $server['p'][$player_key]['name']  = $nameBin;
+                $server['p'][$player_key]['score'] = $score;
+                $server['p'][$player_key]['time']  = lgsl_time($time);
+
+                unset($nameBin, $score, $time);
+
+                $player_key ++;
+        }
+
+//---------------------------------------------------------+
+
+    return TRUE;
+  }
+
+//------------------------------------------------------------------------------------------------------------+
+//------------------------------------------------------------------------------------------------------------+
+
+
+  function lgsl_query_99(&$server, &$lgsl_need, &$lgsl_fp)
+  {
+//---------------------------------------------------------+
+//  MINECRAFT
+
+    $Data = WriteData($lgsl_fp, "\x09" );
+    if (!$Data) { return FALSE; }
+    $Challenge = Pack( 'N', $Data );
+
+    $status     = WriteData($lgsl_fp, "\x00", $Challenge . "\x01\x02\x03\x04" );
+    $status     = SubStr( $status, 11 );
+    $status     = Explode( "\x00\x00\x01player_\x00\x00", $status );
+    $players    = SubStr( $status[ 1 ], 0, -2 );
+    $players    = Explode( "\x00", $players );
+    $status     = Explode( "\x00", $status[ 0 ] );
+
+        /**
+         * Update by sUpEr g2 & Warhawk3407
+         *
+         * 20/07/2012
+         */
+
+        $data['general']        = $status;
+        $data['players']        = $players;
+
+//---------------------------------------------------------+
+//PLUGINS
+
+        $plugins = explode(":", $status[9], 2);
+
+        if (array_key_exists(1, $plugins))
+        {
+                $data['software']       = $plugins[0];
+
+                //---------------------------------------------------------+
+
+                $plugins = explode("; ", $plugins[1]);
+
+                $i = 0;
+                foreach ($plugins as $value)
+                {
+                        $value = trim($value);
+
+                        $plugin = explode(' ', $value);
+
+                        $pluginName = $plugin[0];
+                        $pluginVersion = $plugin[1];
+
+                        unset($plugin);
+
+
+                        $data['plugins'][$pluginName] = $pluginVersion;
+
+                        $i++;
+                }
+
+                unset($plugins);
+        }
+        else
+        {
+                $data['plugins']        = '';
+                $data['software']       = 'Minecraft';
+        }
+
+//---------------------------------------------------------+
+
+        $server['s']['game']           = $data['software'].' '.$data['general'][3]; //Updated game name
+
+    $server['b']['status']         = 1;
+    $server['s']['map']            = $data['general'][11];
+    $server['s']['name']           = $data['general'][1];
+    $server['s']['players']        = $data['general'][13];
+    $server['s']['playersmax']     = $data['general'][15];
+    $server['e']['version']        = $data['general'][7];
+
+    $server['e']                   = $data['plugins'];
+
+//---------------------------------------------------------+
+//PLAYERS
+
+        $players = array();
+
+        for($i=0; $i<sizeof($data['players']); $i++)
+        {
+                $add = array("pid" => $i , "name" => $data['players'][$i]);
+                array_push($players,$add);
+        }
+
+        if (!empty($players[0]['name']))
+        {
+                $server['p'] = $players;
+        }
+
+//---------------------------------------------------------+
+
+    return TRUE;
+  }
+
+//------------------------------------------------------------------------------------------------------------+
+//------------------------------------------------------------------------------------------------------------+
 
 //------------------------------------------------------------------------------------------------------------+
         function lgsl_query_feed(&$server, $request, $lgsl_feed_method, $lgsl_feed_url, $home_info = False)
@@ -4560,6 +4783,29 @@ if (!function_exists('lgsl_version')) { // START OF DOUBLE LOAD PROTECTION
 
                 return $string;
         }
+
+//---------------------------------------------------------+
+
+        function WriteData($socket, $Command, $Append = "" )
+        {
+                $Signal  = $Command[ 0 ];
+                $Command = "\xFE\xFD" . $Command . "\x01\x02\x03\x04" . $Append;
+                $Length  = StrLen( $Command );
+
+                if( $Length !== FWrite( $socket, $Command, $Length ) )
+               {
+                   return false;
+               }
+
+               $Data = FRead( $socket, 1440 );
+
+               if( StrLen( $Data ) < 5 || $Data[ 0 ] != $Signal )
+               {
+                   return false;
+               }
+
+               return SubStr( $Data, 5 );
+           }
 
 //---------------------------------------------------------+
 
