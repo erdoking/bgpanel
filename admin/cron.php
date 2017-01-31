@@ -206,12 +206,20 @@ if (query_numrows( "SELECT `boxid` FROM `".DBPREFIX."box` ORDER BY `boxid`" ) !=
 			while ($rowsServers = mysql_fetch_assoc($servers))
 			{
 				$screenlogExists = trim($ssh->exec('cd '.dirname($rowsServers['path']).'; test -f screenlog.0 && echo "true" || echo "false";'."\n"));
+                                $logdirExists = trim($ssh->exec('cd '.dirname($rowsServers['path']).'; test -d log && echo "true" || echo "false";'."\n"));
+
+                                if ( $logdirExists != 'true' )
+                                {
+                                        $ssh->exec('cd '.dirname($rowsServers['path']).'; mkdir log;'."\n");
+                                }
+
 
 				if ( $screenlogExists == 'true' )
 				{
-					$ssh->exec('cd '.dirname($rowsServers['path']).'; tail -n 500 screenlog.0 > tmp; cat tmp > screenlog.0; rm tmp;'."\n");
+					$ssh->exec('cd '.dirname($rowsServers['path']).'; tail -n 500 screenlog.0 > tmp; cat tmp > screenlog.0 ; cat tmp >> log/screenlog.$(date +%Y%m%d).log; rm tmp;'."\n");
 				}
 
+                                unset($logdirExists);
 				unset($screenlogExists);
 			}
 			unset($servers);
