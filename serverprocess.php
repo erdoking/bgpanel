@@ -129,7 +129,7 @@ switch (@$task)
 			die();
 		}
 
-		$log = $sftp->get( dirname($server['path']).'/screenlog.0' );
+		$log = $sftp->get( dirname($server['path']).'/screenlog.bgpanel' );
 
 		$sftp->disconnect();
 

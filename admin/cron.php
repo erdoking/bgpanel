@@ -216,7 +216,9 @@ if (query_numrows( "SELECT `boxid` FROM `".DBPREFIX."box` ORDER BY `boxid`" ) !=
 
 				if ( $screenlogExists == 'true' )
 				{
-					$ssh->exec('cd '.dirname($rowsServers['path']).'; tail -n 500 screenlog.0 > tmp; cat tmp > screenlog.0 ; cat tmp >> log/screenlog.$(date +%Y%m%d).log; rm tmp;'."\n");
+                                        $ssh->exec('cd '.dirname($rowsServers['path']).'; tail -n 500 screenlog.0 > screenlog.bgpanel; cp screenlog.0 log/screenlog_$(date +%Y%m%d).log > test'."\n");
+                                        
+
 				}
 
                                 unset($logdirExists);
